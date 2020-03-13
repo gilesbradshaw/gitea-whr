@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+  gitea:
+    image: gitea/gitea:latest
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - ROOT_URL=https://${GITEA_HOST}/
+      - SSH_DOMAIN=${GITEA_HOST}
+    volumes:
+      - gitea-app:/data
+    ports:
+      - "3000:3000"
+      - "22:22"
+    networks:
+      - appnet
+
+  webhookrelay:
+    image: webhookrelay/webhookrelayd:latest
+    command:
+      - --mode 
+      - tunnel 
+      - -t
+      - drone.sigyl
+    depends_on:
+      - drone-server
+    environment: 
+      - KEY=$WEBHOOK_RELAY_KEY
+      - SECRET=$WEBHOOK_RELAY_SECRET
+    networks:
+      - appnet
+
+volumes:
+  gitea-app:
+  gitea-db:
+
+networks:
+  appnet:
+    driver: overlay
+
